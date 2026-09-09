@@ -13,8 +13,8 @@ const playwrightPath = process.env.PLAYWRIGHT_PATH || join(homedir(), '.cache/co
 const executablePath = process.env.CHROME_PATH || join(homedir(), 'Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');
 const { chromium } = require(playwrightPath);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const scratch = await mkdtemp(join(tmpdir(), 'arc-tabs-browser-'));
-const artifacts = process.env.ARTIFACT_DIR ? resolve(process.env.ARTIFACT_DIR) : await mkdtemp(join(tmpdir(), 'arc-tabs-artifacts-'));
+const scratch = await mkdtemp(join(tmpdir(), 'recent-tabs-browser-'));
+const artifacts = process.env.ARTIFACT_DIR ? resolve(process.env.ARTIFACT_DIR) : await mkdtemp(join(tmpdir(), 'recent-tabs-artifacts-'));
 await mkdir(artifacts, { recursive: true });
 const extension = join(scratch, 'extension');
 const proofs = [];
@@ -56,7 +56,7 @@ try {
     const name = request.url?.slice(1, 2).toUpperCase() || 'A';
     const colors = { A: '#5b4cf4', B: '#007d76', C: '#b83961', D: '#a35911' };
     response.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
-    response.end(`<!doctype html><html><head><title>Tab ${name}</title></head><body style="margin:0;background:${colors[name] || '#344'};color:white;font:28px system-ui;padding:70px"><h1>Tab ${name}</h1><p>Arc Recent Tabs browser fixture</p><p>Locally rendered preview ${name}</p><input aria-label="Focus target" placeholder="Type here"></body></html>`);
+    response.end(`<!doctype html><html><head><title>Tab ${name}</title></head><body style="margin:0;background:${colors[name] || '#344'};color:white;font:28px system-ui;padding:70px"><h1>Tab ${name}</h1><p>Recent Tabs browser fixture</p><p>Locally rendered preview ${name}</p><input aria-label="Focus target" placeholder="Type here"></body></html>`);
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;

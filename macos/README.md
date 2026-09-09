@@ -22,18 +22,18 @@ caveats:
 
 1. 先按[项目安装说明](../README.md)加载扩展。在 Chrome 地址栏打开 `chrome://extensions/shortcuts`，确认扩展的前进/后退快捷键分别是 **Control + Q**、**Control + Shift + Q**（`⌃`，不是 `⌘`），作用范围为 Chrome 内。先直接试用 Control + Q。
 2. 从 [Karabiner-Elements 官网](https://karabiner-elements.pqrs.org/)安装 Karabiner，按它的引导完成 macOS 要求的授权。当前交付没有安装 Karabiner，也没有修改系统设置。
-3. 将本目录的 [arc-recent-tabs.json](./arc-recent-tabs.json) 复制到 `~/.config/karabiner/assets/complex_modifications/`。没有这个目录时新建它。可以在 Terminal 中执行下面三行；这是**手动安装步骤**：
+3. 将本目录的 [recent-tabs.json](./recent-tabs.json) 复制到 `~/.config/karabiner/assets/complex_modifications/`。没有这个目录时新建它。可以在 Terminal 中执行下面三行；这是**手动安装步骤**：
 
    ```sh
-   cd ~/Desktop/arc-recent-tabs
+   cd ~/Desktop/recent-tabs
    mkdir -p "$HOME/.config/karabiner/assets/complex_modifications"
-   cp -i macos/arc-recent-tabs.json "$HOME/.config/karabiner/assets/complex_modifications/arc-recent-tabs.json"
+   cp -i macos/recent-tabs.json "$HOME/.config/karabiner/assets/complex_modifications/recent-tabs.json"
    ```
 
-4. 打开 Karabiner-Elements → **Complex Modifications** → **Add predefined rule**（旧版可能叫 **Add rule**），找到 **Arc Recent Tabs** 并启用这一条规则。现有个人规则无需替换。[官方自定义规则说明](https://karabiner-elements.pqrs.org/docs/manual/configuration/add-your-own-complex-modifications/)
+4. 打开 Karabiner-Elements → **Complex Modifications** → **Add predefined rule**（旧版可能叫 **Add rule**），找到 **Recent Tabs** 并启用这一条规则。现有个人规则无需替换。[官方自定义规则说明](https://karabiner-elements.pqrs.org/docs/manual/configuration/add-your-own-complex-modifications/)
 5. Chrome 内按住 Control，再多次点按 Tab，检查下面的验收步骤。
 
-停用时，在 Karabiner 的 Complex Modifications 中移除/停用 **Arc Recent Tabs** 规则，即恢复 Chrome 自带的 Control + Tab。只删除复制的 JSON 文件不等于停用已经启用的规则。
+停用时，在 Karabiner 的 Complex Modifications 中移除/停用 **Recent Tabs** 规则，即恢复 Chrome 自带的 Control + Tab。只删除复制的 JSON 文件不等于停用已经启用的规则。
 
 ## 按键语义
 

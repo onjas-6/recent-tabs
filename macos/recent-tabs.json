@@ -1,8 +1,8 @@
 {
-  "title": "Arc Recent Tabs — Control+Tab in Google Chrome",
+  "title": "Recent Tabs — Control+Tab in Google Chrome",
   "rules": [
     {
-      "description": "Arc Recent Tabs: Control+Tab → Control+Q; Shift reverses (Google Chrome only)",
+      "description": "Recent Tabs: Control+Tab → Control+Q; Shift reverses (Google Chrome only)",
       "manipulators": [
         {
           "type": "basic",

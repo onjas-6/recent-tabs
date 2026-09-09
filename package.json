@@ -1,12 +1,22 @@
 {
-  "name": "arc-recent-tabs",
-  "version": "0.1.1",
+  "name": "recent-tabs",
+  "version": "0.1.2",
   "private": true,
-  "description": "Arc-style recent tab switching for Chrome with local screenshot previews.",
-  "repository": { "type": "git", "url": "https://github.com/onjas-6/arc-recent-tabs.git" },
-  "homepage": "https://github.com/onjas-6/arc-recent-tabs#readme",
-  "bugs": { "url": "https://github.com/onjas-6/arc-recent-tabs/issues" },
+  "description": "Recent tab switching for Chrome with local screenshot previews.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onjas-6/recent-tabs.git"
+  },
+  "homepage": "https://github.com/onjas-6/recent-tabs#readme",
+  "bugs": {
+    "url": "https://github.com/onjas-6/recent-tabs/issues"
+  },
   "type": "module",
-  "engines": { "node": ">=20" },
-  "scripts": { "test": "node --test tests/*.test.js", "test:browser": "node tests/browser-smoke.mjs" }
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "test:browser": "node tests/browser-smoke.mjs"
+  }
 }

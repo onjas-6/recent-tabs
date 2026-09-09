@@ -1,21 +1,21 @@
-# Arc Recent Tabs
+# Recent Tabs
 
 An Arc-inspired recent-tab switcher for Chrome, with local screenshot previews. Hold **Control**, press **Q** repeatedly to browse tabs in the order you last visited them, then release Control to switch.
 
-**[Download the latest release](https://github.com/onjas-6/arc-recent-tabs/releases/latest)** · [Install with an agent](./INSTALL_WITH_AGENT.md) · [中文说明](#中文说明) · [Verification](./VERIFY.md)
+**[Download the latest release](https://github.com/onjas-6/recent-tabs/releases/latest)** · [Install with an agent](./INSTALL_WITH_AGENT.md) · [中文说明](#中文说明) · [Verification](./VERIFY.md)
 
-![Arc Recent Tabs preview cards](./assets/preview.png)
+![Recent Tabs preview cards](./assets/preview.png)
 
-Current version: **0.1.1**. Requires **Chrome 127+**. This is an independent project inspired by Arc; it is not affiliated with Arc or Chrome.
+Current version: **0.1.2**. Requires **Chrome 127+**. This is an independent project inspired by Arc; it is not affiliated with Arc or Chrome.
 
 ## Install
 
 The extension is distributed as an unpacked extension. **No build, Node.js, Python, or npm installation is needed.**
 
-1. Download `arc-recent-tabs-portable-v0.1.1.zip` from the [latest release](https://github.com/onjas-6/arc-recent-tabs/releases/latest), or download this repository. Extract it to a permanent local folder.
+1. Download `recent-tabs-portable-v0.1.2.zip` from the [latest release](https://github.com/onjas-6/recent-tabs/releases/latest), or download this repository. Extract it to a permanent local folder.
 2. Open `chrome://extensions` and enable **Developer mode**.
 3. Click **Load unpacked** and select the extracted project's **`extension/`** subfolder, not the project root.
-4. Pin **Arc Recent Tabs** from Chrome's extensions menu.
+4. Pin **Recent Tabs** from Chrome's extensions menu.
 5. Open `chrome://extensions/shortcuts`. Confirm **Control + Q** for the next recent tab and **Control + Shift + Q** for the reverse direction, both scoped to **In Chrome**. Chrome may leave conflicting shortcuts unassigned or preserve old bindings after an update; check the actual saved values.
 6. Open the extension's settings using the gear icon, click **Enable website previews**, and accept Chrome's optional website-access permission. Visit a few ordinary web pages and pause briefly on each to populate the preview cache. Refresh existing pages if the overlay does not appear.
 
@@ -79,7 +79,7 @@ Source lives in [extension/](./extension/), tests in [tests/](./tests/), and the
 
 ### 安装与换电脑
 
-1. 从 [最新 Release](https://github.com/onjas-6/arc-recent-tabs/releases/latest) 下载完整 ZIP，解压到准备长期保留的位置。无需构建，也不需要安装 Node.js、Python 或 npm。
+1. 从 [最新 Release](https://github.com/onjas-6/recent-tabs/releases/latest) 下载完整 ZIP，解压到准备长期保留的位置。无需构建，也不需要安装 Node.js、Python 或 npm。
 2. 打开 `chrome://extensions` → **开发者模式** → **加载已解压的扩展程序**，选择项目中的 **`extension/` 子文件夹**。
 3. 固定扩展图标，在 `chrome://extensions/shortcuts` 确认实际快捷键为 **Control + Q** 和 **Control + Shift + Q**，范围为 **在 Chrome 中**。macOS 用物理 Control（`⌃`），不是会退出浏览器的 Command（`⌘`）。已有快捷键冲突或升级后保留旧绑定时，需要在这里调整。
 4. 点击扩展图标中的齿轮 → **Enable website previews**，允许网站访问权限。依次浏览几个普通网页并稍作停留，即可积累预览截图。已有网页若没有面板，可刷新后重试。

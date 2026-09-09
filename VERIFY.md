@@ -8,18 +8,20 @@ inputs:
   - tests/controller.test.js
   - tests/previews.test.js
   - tests/browser-smoke.mjs
-  - assets/browser-smoke-v0.1.1.json
+  - assets/browser-smoke-v0.1.2.json
   - Native Chrome UI validation on macOS
 supersedes: VERIFY-v0.1.0.md
 caveats:
   - The complete physical hold-Control, repeat-Q, release-Control gesture has not been verified by a person.
 ---
 
-# Verification — v0.1.1
+# Verification — v0.1.2
 
-Version 0.1.1 changes the default shortcut from Control + E to **Control + Q**. This record distinguishes native Chrome UI checks from browser automation and untested behavior. The historical [v0.1.0 record](./VERIFY-v0.1.0.md) refers to the old E shortcut.
+Version **0.1.2** renames the product and distribution folder to **Recent Tabs** / `recent-tabs`; switching behavior and the Control + Q shortcut are unchanged. All 37 logic tests and 10 browser scenarios were rerun successfully on **v0.1.2**. The native Chrome interaction checks below were recorded for **v0.1.1**, which changed the default shortcut from Control + E to **Control + Q**. This record distinguishes native Chrome UI checks from browser automation and untested behavior. The historical [v0.1.0 record](./VERIFY-v0.1.0.md) refers to the old E shortcut.
 
 ## Native Chrome UI checks on macOS
+
+For **v0.1.2**, the existing Chrome installation was reloaded and the extension details showed **Recent Tabs**, version **0.1.2**, enabled and pinned. Its settings page showed the new name, the saved **Control + Q** shortcut, and previews still enabled. The earlier interaction checks below remain attributed to v0.1.1.
 
 Desktop UI automation installed the production extension in ordinary Google Chrome and verified version **0.1.1**, the enabled state, **Control + Q / Control + Shift + Q** bindings scoped to **In Chrome**, the pinned toolbar action, and the optional website permission through Chrome's native prompt. No test hooks or mandatory all-sites permission were added to that installation.
 
@@ -37,7 +39,7 @@ Four dedicated local HTTP test pages established a visit order of **A → B → 
 
 `node --test tests/*.test.js`: **37 tests passed**. Coverage includes MRU history, a fixed selection order during each session, forward/reverse cycling, window isolation, tab closure/movement/navigation, worker wake-up, session authentication, queue recovery, and preview permissions, concurrency, cleanup, and capacity limits.
 
-Browser tests in Chrome for Testing **149.0.7827.55**: **10 scenarios passed**, with **zero unexpected page or console errors**. The recorded output is in [assets/browser-smoke-v0.1.1.json](./assets/browser-smoke-v0.1.1.json); the rendered panel is shown in [assets/preview.png](./assets/preview.png).
+Browser tests in Chrome for Testing **149.0.7827.55**: **10 scenarios passed**, with **zero unexpected page or console errors**. The recorded output is in [assets/browser-smoke-v0.1.2.json](./assets/browser-smoke-v0.1.2.json); the rendered panel is shown in [assets/preview.png](./assets/preview.png).
 
 The browser scenarios checked:
 
@@ -75,6 +77,8 @@ node tests/browser-smoke.mjs
 The browser runner uses a temporary profile and extension copy, cleans them up afterwards, and does not connect to a personal Chrome profile. Set `ARTIFACT_DIR` to choose an output directory.
 
 ## 中文摘要
+
+v0.1.2 将产品与发行文件夹改名为 **Recent Tabs** / `recent-tabs`，切换行为和 Control + Q 快捷键保持不变。v0.1.2 已重新通过 37 项逻辑测试和 10 项浏览器场景；下述原生交互记录来自 v0.1.1。
 
 v0.1.1 的 **37 项逻辑测试和 10 项 Chrome 浏览器测试通过**。普通 Chrome 原生界面验证了安装、两项 Q 快捷键、预览权限、C → B → A 选择顺序、反向选择、截图以及 Enter／Esc 和受限页面备用弹窗。
 

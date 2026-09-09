@@ -44,7 +44,7 @@ export class Controller {
 
   enqueue(task) {
     const result = this.tail.then(() => this.ready).then(task);
-    this.tail = result.catch(error => console.warn('Arc Recent Tabs:', error.message));
+    this.tail = result.catch(error => console.warn('Recent Tabs:', error.message));
     return result;
   }
 

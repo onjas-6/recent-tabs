@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "browserVersion": "149.0.7827.55",
+  "proofs": [
+    "Captured four actual visible-page JPEG thumbnails in session storage",
+    "Synthetic webpage Control release is ignored",
+    "Web-accessible iframe in another tab cannot retrieve titles or screenshots",
+    "All four desktop preview cards fit fully; 600px overlay has no body overflow",
+    "Repeated commands select C \u2192 B \u2192 A; trusted Control release activates A",
+    "Reverse command wraps B \u2192 C \u2192 D \u2192 A \u2192 B; Escape preserves active tab",
+    "Closing selected tab picks its successor; ArrowRight and Enter work in preview",
+    "chrome://settings opens an actual Chrome action popup fallback",
+    "Toolbar action opens a manual popup; actual target dismissal cancels the session and it reopens",
+    "No unexpected page errors during the browser run"
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "nativeCommandDispatch": "Not simulated: worker invokes the same queued command handler; modifier release and UI keys are real browser input."
+}

@@ -11,11 +11,11 @@ inputs:
   - https://developer.chrome.com/docs/extensions/develop/ui/add-popup
 ---
 
-# Arc Recent Tabs — 实施计划（已批准）
+# Recent Tabs — 实施计划（已批准）
 
-项目放在 `~/Desktop/arc-recent-tabs/`。本计划在只创建目录、尚未开始实现时写成，随后由用户在对话中回复 `approve` 批准。实现和验证状态见 README.md 与 VERIFY.md。
+项目放在 `~/Desktop/recent-tabs/`。本计划在只创建目录、尚未开始实现时写成，随后由用户在对话中回复 `approve` 批准。实现和验证状态见 README.md 与 VERIFY.md。
 
-> 后续变更：用户于 2026-09-08 要求将默认键改为 Control + Q，并安装到当前 Chrome；v0.1.1 按此要求交付，下面保留最初批准的计划。
+> 后续变更：用户于 2026-09-08 要求将默认键改为 Control + Q，并安装到当前 Chrome；v0.1.1 按此要求交付，v0.1.2 将产品及目录改名为 Recent Tabs / `recent-tabs`。本文名称与目录引用已同步更新，下面保留最初批准的功能计划和版本记录。
 
 ## 目标体验
 
@@ -70,7 +70,7 @@ Chrome Commands API 支持的按键不包括 Tab，因此扩展本身无法直�
 原生 JavaScript、HTML、CSS，Chrome Manifest V3，无后端，不要求构建框架。
 
 ```text
-arc-recent-tabs/
+recent-tabs/
   PLAN.md
   extension/          # Chrome「加载已解压的扩展程序」选择这里
     manifest.json
