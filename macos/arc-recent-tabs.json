@@ -1,0 +1,56 @@
+{
+  "title": "Arc Recent Tabs — Control+Tab in Google Chrome",
+  "rules": [
+    {
+      "description": "Arc Recent Tabs: Control+Tab → Control+Q; Shift reverses (Google Chrome only)",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "tab",
+            "modifiers": {
+              "mandatory": ["left_control"],
+              "optional": ["shift", "caps_lock"]
+            }
+          },
+          "to": [
+            {
+              "key_code": "q",
+              "modifiers": ["left_control"],
+              "repeat": true
+            }
+          ],
+          "conditions": [
+            {
+              "type": "frontmost_application_if",
+              "bundle_identifiers": ["^com\\.google\\.Chrome$"]
+            }
+          ]
+        },
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "tab",
+            "modifiers": {
+              "mandatory": ["right_control"],
+              "optional": ["shift", "caps_lock"]
+            }
+          },
+          "to": [
+            {
+              "key_code": "q",
+              "modifiers": ["right_control"],
+              "repeat": true
+            }
+          ],
+          "conditions": [
+            {
+              "type": "frontmost_application_if",
+              "bundle_identifiers": ["^com\\.google\\.Chrome$"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
