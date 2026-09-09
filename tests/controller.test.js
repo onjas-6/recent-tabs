@@ -88,7 +88,8 @@ test('queued repeated shortcuts traverse the original MRU snapshot before one co
   ]);
   assert.deepEqual(controller.session.selection.ids, [4, 3, 2, 1]);
   assert.equal(selectedId(controller.session.selection), 1);
-  assert.equal(state.popupCalls.length, 1);
+  assert.equal(state.popupCalls.length, 0, 'ordinary pages use an overlay even with previews off');
+  assert.equal(controller.session.surface, 'overlay');
   assert.deepEqual(state.updates, [], 'highlights do not activate tabs');
   assert.equal((await controller.commit()).ok, true);
   assert.deepEqual(state.updates, [{ id: 1, changes: { active: true } }]);
@@ -442,4 +443,94 @@ test('keyboard render notifications do not duplicate the UI payload query', asyn
   t.mock.method(api.commands, 'getAll', async () => { throw new Error('UI owns shortcut reads'); });
   await controller.render();
   assert.deepEqual(state.notifications.at(-1), { type: 'render', sessionId: controller.session.id });
+});
+
+
+test('default shortcut uses activeTab overlay and commits on release without preview permission', async t => {
+  const { controller, api, state, overlay } = await setup(t);
+  const sendMessage = api.tabs.sendMessage;
+  api.tabs.sendMessage = async (...args) => {
+    if (args[1].type === 'show-overlay' && !state.executeScripts.length)
+      throw new Error('No receiver before activeTab injection');
+    return sendMessage(...args);
+  };
+  const requestedAt = Date.now();
+  await controller.shortcut(1, state.tabs.find(tab => tab.id === 4), requestedAt);
+  assert.equal(controller.session.surface, 'overlay');
+  assert.equal(controller.session.mode, 'hold');
+  assert.equal(state.popupCalls.length, 0);
+  assert.deepEqual(state.executeScripts, [{ target: { tabId: 4 }, files: ['overlay.js'] }]);
+  assert.deepEqual(state.scripts, [], 'no persistent all-sites content script is registered');
+  assert.equal(state.permission, false);
+  assert.equal(controller.enabled, false);
+  assert.deepEqual(state.local, {}, 'using the shortcut does not enable screenshots');
+  const payload = await controller.payload();
+  assert.equal(payload.tabs.some(tab => tab.thumbnail), false);
+  await controller.message({ type: 'modifier-released', sessionId: controller.session.id, at: requestedAt + 1 }, overlay);
+  assert.deepEqual(state.updates, [{ id: 3, changes: { active: true } }]);
+  assert.equal(controller.session, null);
+  assert.deepEqual(state.captures, []);
+  assert.equal(controller.captureTimers.size, 0);
+});
+
+test('shortcut installs the release listener before waiting on pending controller work', async t => {
+  const { controller, api, state, overlay } = await setup(t);
+  const requestedAt = Date.now();
+  let resume;
+  const gate = new Promise(resolve => { resume = resolve; });
+  const blocked = controller.enqueue(() => gate);
+  const started = controller.shortcut(1, state.tabs.find(tab => tab.id === 4), requestedAt);
+  assert.equal(state.executeScripts.length, 1, 'injection starts synchronously at command receipt');
+  assert.equal(controller.session, null, 'session creation is still queued');
+  const release = controller.enqueue(() => controller.message({ type: 'modifier-released', at: requestedAt + 1 }, overlay));
+  resume();
+  await Promise.all([blocked, started, release]);
+  assert.equal(controller.session, null);
+  assert.deepEqual(state.updates, [{ id: 3, changes: { active: true } }]);
+  assert.equal(state.popupCalls.length, 0);
+});
+
+test('preview-disabled shortcuts still cycle forwards and backwards before releasing', async t => {
+  const { controller, state, overlay } = await setup(t);
+  const tab = state.tabs.find(tab => tab.id === 4);
+  const at = Date.now();
+  await controller.shortcut(1, tab, at);
+  await controller.shortcut(1, tab, at + 1);
+  await controller.shortcut(-1, tab, at + 2);
+  assert.equal(selectedId(controller.session.selection), 3);
+  assert.deepEqual(state.updates, []);
+  assert.equal(state.executeScripts.length, 1, 'repeated keys reuse the active overlay');
+  await controller.message({ type: 'modifier-released', sessionId: controller.session.id, at: at + 3 }, overlay);
+  assert.deepEqual(state.updates, [{ id: 3, changes: { active: true } }]);
+});
+
+test('a keyboard command replaces a manual popup with a hold session', async t => {
+  const { controller, state, popup, overlay } = await setup(t);
+  await controller.message({ type: 'ui-ready', surface: 'popup' }, popup);
+  const oldSessionId = controller.session.id;
+  assert.equal(controller.session.mode, 'manual');
+  const at = Date.now();
+  await controller.shortcut(1, state.tabs.find(tab => tab.id === 4), at);
+  assert.notEqual(controller.session.id, oldSessionId);
+  assert.equal(controller.session.mode, 'hold');
+  assert.equal(controller.session.surface, 'overlay');
+  await controller.message({ type: 'modifier-released', sessionId: controller.session.id, at: at + 1 }, overlay);
+  assert.equal(controller.session, null);
+  assert.equal(state.updates.at(-1).id, 3);
+});
+
+test('restricted pages and denied activeTab injection retain popup fallback', async t => {
+  const restricted = await setup(t);
+  const tab = restricted.state.tabs.find(tab => tab.id === 4);
+  tab.url = 'chrome://settings/';
+  await restricted.controller.shortcut(1, tab);
+  assert.equal(restricted.controller.session.surface, 'popup');
+  assert.equal(restricted.state.popupCalls.length, 1);
+  assert.deepEqual(restricted.state.executeScripts, []);
+
+  const denied = await setup(t);
+  denied.api.scripting.executeScript = async () => { throw new Error('Chrome restricts this page'); };
+  await denied.controller.shortcut(1, denied.state.tabs.find(tab => tab.id === 4));
+  assert.equal(denied.controller.session.surface, 'popup');
+  assert.equal(denied.state.popupCalls.length, 1);
 });

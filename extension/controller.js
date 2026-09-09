@@ -110,12 +110,27 @@ export class Controller {
     return (await this.api.tabs.query(query))[0];
   }
 
-  async begin(direction = 1, manual = false, sourceTab, requestedAt = Date.now()) {
+  shortcut(direction, sourceTab, requestedAt = Date.now()) {
+    // chrome.commands grants activeTab for this explicit user gesture. Start
+    // installing the key listener immediately, before worker initialization,
+    // storage writes, or other queued work can delay the first Control release.
+    // Screenshots and persistent website access still require preview opt-in.
+    let prepared = null;
+    if (sourceTab?.id && !sourceTab.incognito && webPage(sourceTab.url) &&
+        this.session?.sourceTabId !== sourceTab.id) {
+      prepared = this.api.scripting.executeScript({
+        target: { tabId: sourceTab.id }, files: ['overlay.js']
+      }).then(() => true, () => false);
+    }
+    return this.enqueue(() => this.begin(direction, false, sourceTab, requestedAt, prepared));
+  }
+
+  async begin(direction = 1, manual = false, sourceTab, requestedAt = Date.now(), prepared = null) {
     this.captureGeneration++;
     const tab = sourceTab?.id ? await this.api.tabs.get(sourceTab.id) : await this.activeTab();
     if (!tab || tab.incognito || (await this.api.windows.get(tab.windowId)).type !== 'normal')
       return { ok: false, error: 'Open a normal Chrome window first.' };
-    if (this.session && this.session.windowId === tab.windowId &&
+    if (this.session?.mode === 'hold' && this.session.windowId === tab.windowId &&
         this.session.sourceTabId === tab.id && !manual) {
       this.session.selection = stepSelection(this.session.selection, direction);
       await this.save();
@@ -131,8 +146,11 @@ export class Controller {
       createdAt: requestedAt, surface: manual ? 'popup' : 'pending' };
     await this.save();
     if (manual) return this.payload();
-    if (this.enabled && webPage(tab.url)) {
+    // Keyboard switching must not depend on screenshot permission. activeTab
+    // permits this on-demand panel on ordinary pages even with previews off.
+    if (webPage(tab.url)) {
       try {
+        if (prepared && !await prepared) throw new Error('This page does not allow the switcher');
         this.session.surface = 'overlay';
         const sessionId = this.session.id;
         const show = () => this.api.tabs.sendMessage(tab.id,

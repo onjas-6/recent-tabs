@@ -24,7 +24,8 @@ chrome.runtime.onConnect.addListener(port => {
 chrome.commands.onCommand.addListener((command, tab) => {
   const requestedAt = Date.now();
   if (command === 'next-recent' || command === 'previous-recent')
-    run(() => controller.begin(command === 'next-recent' ? 1 : -1, false, tab, requestedAt));
+    controller.shortcut(command === 'next-recent' ? 1 : -1, tab, requestedAt)
+      .catch(error => console.warn(error.message));
 });
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   // Ignore our own outbound render/close notifications.

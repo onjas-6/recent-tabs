@@ -1,6 +1,6 @@
 ---
 created: 2026-09-08T18:44-07:00
-updated: 2026-09-08T20:32-07:00
+updated: 2026-09-08T21:01-07:00
 model: gpt-6
 harness: codex-desktop
 author: ai
@@ -23,9 +23,9 @@ This is a Chrome extension project that can be installed directly. See [README.m
 
 When the user asks to install this project, install, configure, and verify it in the Chrome profile they actually use on this computer. Do not stop after providing instructions. The default forward shortcut is **Control + Q**; reverse is **Control + Shift + Q**. Both use the **In Chrome** scope.
 
-Installation needs no Node.js, Python, npm, build, or development server. Chrome loads `extension/` directly. Read the version from `extension/manifest.json`; this delivery targets **0.1.2**. If the actual version differs, check the package and report it accurately. Never claim to have installed a version you have not read.
+Installation needs no Node.js, Python, npm, build, or development server. Chrome loads `extension/` directly. Read the version from `extension/manifest.json`; this delivery targets **0.1.3** from the current `main` branch. The published v0.1.2 ZIP predates the Control-release fixes; do not represent it as v0.1.3 or offer a nonexistent release download. If the actual version differs, check the package and report it accurately. Never claim to have installed a version you have not read.
 
-Website previews request optional website access. When the user explicitly authorizes previews, click **Enable website previews** in the extension settings and grant access through **Chrome's native permission prompt**. Do not edit browser profile files or use hidden interfaces to bypass that prompt. The companion installation request explicitly authorizes previews. Without that authorization, complete the base installation, preserve the current preview setting, and explain its status.
+Website previews request optional website access only for local screenshot capture. Normal HTTP(S) pages still open in-page title cards and switch on Control release when previews are off. When the user explicitly authorizes previews, click **Enable website previews** in the extension settings and grant access through **Chrome's native permission prompt**. Do not edit browser profile files or use hidden interfaces to bypass that prompt. The companion installation request explicitly authorizes previews. Without that authorization, complete the base installation, preserve the current preview setting, and explain its status.
 
 ### Installation procedure
 
@@ -33,7 +33,7 @@ Website previews request optional website access. When the user explicitly autho
 2. **Choose a permanent location.** Extract the entire project to a stable local directory owned by the user, such as a `recent-tabs` folder on this computer's Desktop. Use the existing location if it is already suitable. Do not load from inside a ZIP, a temporary directory, a download cache, or a temporarily mounted volume. Do not assume the source computer's username, Desktop path, operating system, or extension ID. Do not use a directory that will be automatically cleaned up or create directory symlinks.
 3. **Install or update.** Open `chrome://extensions` in the user's actual Chrome profile and enable Developer mode. For a first installation, click **Load unpacked** and select the project's **`extension/` subfolder**, not the project root. If Recent Tabs is already installed, inspect its details and loaded path. Reload after updating files at the same path. If paths differ, preserve the working installation and identify the intended update target before proceeding; avoid duplicate installations or moving a directory still in use. Verify the extension is enabled, read its actual version, and check for errors.
 4. **Verify the saved shortcuts manually.** Open `chrome://extensions/shortcuts`. Set “Select the next most recent tab” to Control + Q and “Select the previous recent tab” to Control + Shift + Q, both scoped to In Chrome. **Chrome may preserve old shortcuts after an update or reload; changing the manifest does not prove the user's bindings changed.** Read both actual saved bindings in the interface. If the user has requested these two shortcuts for this extension, you may transfer a conflicting binding from another extension to Recent Tabs through this native shortcuts page. Clear or replace only the conflicting shortcut, preserve the other extension's enabled state and other settings, and report the transfer. Distinguish an extension shortcut conflict from a system-reserved key.
-5. **Pin the extension and configure previews.** Pin Recent Tabs using the toolbar's Extensions menu. Open its settings. When authorized, enable website previews, complete the native permission prompt, and verify the enabled state. Visit ordinary HTTP(S) pages and pause briefly so screenshots can be cached. Refresh test pages that were open before installation if needed.
+5. **Pin the extension and configure previews.** Pin Recent Tabs using the toolbar's Extensions menu. Open its settings and confirm the visible version matches the loaded extension. When authorized, enable website previews, complete the native permission prompt, and verify the enabled state. Visit ordinary HTTP(S) pages and pause briefly so screenshots can be cached. After an update, refresh existing test pages before checking the physical gesture. Preview permission is not required for the normal keyboard hold-and-release check.
 6. **Verify and deliver.** Run the acceptance checks below. Preserve the user's existing tabs, unrelated settings, and other extensions, except for the authorized conflicting shortcut changes above. Close only test tabs created for this installation that are no longer needed. Report the permanent installation path and remind the user not to delete or move that directory.
 
 ### Operating system and browser constraints
@@ -54,7 +54,7 @@ Use four public HTTP(S) test tabs in the same normal Chrome window. Visit them i
 | Step through recent tabs | Hold Control and tap Q three times. Selection moves through C, B, A while the actual page remains on D. Release Control to activate A. |
 | Reverse selection | Reestablish A → B → C → D. Hold Control and tap Q twice to select B, then add Shift and tap Q once to return to C. Release Control to activate C. |
 | Cancel | Reestablish the same order. From D, hold Control, tap Q, then press Esc. Releasing Control leaves D active. |
-| Previews | When authorized, ordinary pages show centered cards and the selected state. Pages that have been visited and cached can show screenshots. Verify screenshots remain local and require no external service login. |
+| Previews | First verify ordinary pages show centered title cards and complete on Control release with previews disabled or absent. On the first invocation after the temporary listener injects, retry if an exceptionally fast release is missed. When authorized, then enable previews: visited cached pages can show screenshots. Verify screenshots remain local and require no external service login. |
 | Restricted pages | Test the fallback popup from a `chrome://extensions` tab created for this installation. An in-page overlay is not required on restricted pages. The shortcut or toolbar entry should open a title list and allow a selection. If focus transfer prevents modifier release from being captured, verify Enter to confirm and Esc to cancel, and report the observed behavior. |
 
 The physical keyboard check must cover **holding Control continuously, tapping Q multiple times, and finally releasing Control**. Sending one key combination, calling internal functions, or running automated tests alone does not replace this check. If the tools cannot hold a key, explicitly leave this item for the user to test; do not overstate completion.
@@ -73,9 +73,9 @@ Briefly report the actual version, permanent project path and loaded `extension/
 
 用户提出“安装这个项目”时，完成当前电脑实际使用的 Chrome 配置文件中的安装、快捷键设置和验证；不要仅给出操作说明后结束。默认向前快捷键为 **Control + Q**，反向为 **Control + Shift + Q**，范围为 **In Chrome / 在 Chrome 中**。
 
-安装不需要 Node.js、Python、npm、构建或开发服务器。Chrome 直接读取 `extension/`。以 `extension/manifest.json` 中的版本为准；本次交付目标版本为 **0.1.2**。若实际版本不同，核对包内容并如实报告，不要声称安装了未读取的版本。
+安装不需要 Node.js、Python、npm、构建或开发服务器。Chrome 直接读取 `extension/`。以 `extension/manifest.json` 中的版本为准；当前 `main` 分支交付目标为 **0.1.3**。已发布的 v0.1.2 ZIP 早于 Control 松键修复；不要把它说成 0.1.3，也不要编造不存在的 release 下载。若实际版本不同，核对包内容并如实报告，不要声称安装了未读取的版本。
 
-网站预览会请求可选的网站访问权限。用户明确要求启用预览时，在扩展设置中点击 **Enable website previews**，并通过 **Chrome 原生权限界面**完成授权；不要修改浏览器配置文件或调用隐藏接口绕过权限界面。下述配套安装请求已明确授权启用预览。没有这种授权时，基础安装仍可完成，保留预览当前状态并说明。
+网站预览只为保存本地截图而请求可选的网站访问权限。即使关闭预览，普通 HTTP(S) 网页仍可打开页面内标题卡片，并在松开 Control 时切换。用户明确要求启用预览时，在扩展设置中点击 **Enable website previews**，并通过 **Chrome 原生权限界面**完成授权；不要修改浏览器配置文件或调用隐藏接口绕过权限界面。下述配套安装请求已明确授权启用预览。没有这种授权时，基础安装仍可完成，保留预览当前状态并说明。
 
 ### 安装步骤
 
@@ -83,7 +83,7 @@ Briefly report the actual version, permanent project path and loaded `extension/
 2. **确定永久位置。** 先解压整个项目到用户拥有的稳定本地目录，例如该电脑的桌面 `recent-tabs` 文件夹；若项目已经在那里，直接使用。不要从 ZIP 内部、临时目录、下载缓存或临时挂载卷加载。不要假定源电脑的用户名、桌面路径、操作系统或扩展 ID。不要把项目放入会清理的临时目录，也不要建立目录符号链接。
 3. **安装或更新。** 在用户实际 Chrome 配置文件打开 `chrome://extensions`，开启开发者模式。首次安装点击 **Load unpacked / 加载已解压的扩展程序**，选择项目的 **`extension/` 子文件夹**（不是项目根目录）。已有 Recent Tabs 时，检查其详情和加载位置：相同路径更新后使用重新加载；若路径不同，保留有效安装并核对待更新对象，避免重复安装或移走仍在使用的目录。页面必须显示扩展已启用以及实际版本，检查是否有错误。
 4. **手动核验快捷键。** 打开 `chrome://extensions/shortcuts`，将 “Select the next most recent tab” 设为 Control + Q，将 “Select the previous recent tab” 设为 Control + Shift + Q，两项范围均为 In Chrome。**Chrome 更新或重新加载扩展时可能保留旧快捷键，修改 manifest 不代表已改好用户的绑定。** 必须读取界面中实际保存的两项快捷键。用户已要求把这两个组合键用于本扩展时，可以在该原生快捷键页面把被其他扩展占用的对应绑定转给 Recent Tabs；只清除/替换发生冲突的那一项快捷键，保留原扩展的启用状态和其他设置，并在交付中说明转移情况。不要把普通扩展快捷键冲突与系统保留键混为一谈。
-5. **固定入口。** 在工具栏扩展拼图菜单固定 Recent Tabs。打开扩展设置；已获授权时启用网站预览并完成原生权限提示，核对设置显示已启用。浏览普通 HTTP(S) 网页并稍作停留以产生截图；安装前已打开的测试网页必要时刷新。
+5. **固定入口。** 在工具栏扩展拼图菜单固定 Recent Tabs。打开扩展设置并核对可见版本与加载版本一致；已获授权时启用网站预览并完成原生权限提示，核对设置显示已启用。浏览普通 HTTP(S) 网页并稍作停留以产生截图。更新后先刷新已打开的测试网页，再验收物理按键。普通网页的按住／松键验收不依赖预览权限。
 6. **完成下方验收并交付。** 保留用户原有标签、无关设置和其他扩展；上述已授权的冲突快捷键调整除外。只清理本次自己创建且不再需要的测试标签。告知用户永久安装路径，提醒不要删除或移动该目录。
 
 ### 操作系统与浏览器约束
@@ -104,7 +104,7 @@ Briefly report the actual version, permanent project path and loaded `extension/
 | 连续回退 | 按住 Control，依次点按 Q 三次，选择顺序为 C、B、A；选取期间实际页面仍停在 D。松开 Control 后才激活 A。 |
 | 反向选择 | 重新按 A → B → C → D 建立顺序。按住 Control，点 Q 两次选到 B，再加 Shift 点 Q 一次应回到 C；松开 Control 激活 C。 |
 | 取消 | 重新建立上述访问顺序，从 D 按住 Control 点 Q，再按 Esc；松开 Control 后仍停在 D。 |
-| 预览 | 已授权时，普通网页显示居中卡片及选中状态；访问并缓存后的页面可出现截图。核实截图留在本机，无需登录外部服务。 |
+| 预览 | 先在未启用或未授权预览时，验证普通网页显示居中标题卡片并在松开 Control 后切换。临时监听页面首次注入时若极快松键丢失，重试该手势。已授权时，再验证访问并缓存后的页面可出现截图。核实截图留在本机，无需登录外部服务。 |
 | 受限页面 | 在本次创建的 `chrome://extensions` 标签测试备用弹窗；受限页不要求出现页面内覆盖层。快捷键或工具栏入口应能打开标题列表并完成一次选择。松键因焦点交接未捕获时，验证 Enter 确认和 Esc 取消，并在交付中注明实际表现。 |
 
 真实按键验收必须涵盖“持续按住 Control、多次 Q、最后松开”。只发送一次组合键、只调用内部函数或只运行自动测试，不能替代这项验证。当前工具不能持续按住按键时，将此项明确列为待用户实测，不夸大完成度。

@@ -2,6 +2,7 @@
 const toggle = document.getElementById('toggle-previews');
 const clear = document.getElementById('clear-previews');
 const feedback = document.getElementById('feedback');
+document.getElementById('version').textContent = `Recent Tabs · Version ${chrome.runtime.getManifest().version}`;
 let enabled = false;
 let busy = false;
 
@@ -43,7 +44,7 @@ toggle.addEventListener('click', async () => {
       // Keep the permission request directly in this user gesture.
       const granted = await chrome.permissions.request({ origins: ['<all_urls>'] });
       if (!granted) {
-        feedback.textContent = 'Previews stay off. You can still switch tabs using their titles.';
+        feedback.textContent = 'Previews stay off. Keyboard switching and title cards still work.';
         return;
       }
       await send({ type: 'set-previews', enabled: true });

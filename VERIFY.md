@@ -1,6 +1,6 @@
 ---
 created: 2026-09-08T20:22-07:00
-updated: 2026-09-08T20:46-07:00
+updated: 2026-09-08T21:01-07:00
 model: gpt-6
 harness: codex-desktop
 author: ai
@@ -19,7 +19,17 @@ caveats:
 
 # Verification
 
-## Control-release fix on main
+## v0.1.3: keyboard switching with previews disabled
+
+**Trigger and result:** with screenshot previews disabled, a keyboard shortcut previously opened the toolbar popup. Ordinary HTTP(S) pages now use the in-page switcher using the extension's existing `activeTab` permission. Releasing Control commits the selected tab without enabling screenshots or requesting all-sites access. A toolbar click still opens a manual popup; restricted pages and failed injection retain the fallback popup.
+
+The production command handler starts installing the release listener before waiting for controller initialization, queued work, or storage. Native Chrome keyboard commands grant temporary `activeTab` access, including permission to inject scripts; see [Chrome's activeTab documentation](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab). Preview capture and persistent content-script registration still require preview opt-in and its existing optional permission.
+
+**Validation:** `npm test` — **53 tests passed**; JavaScript syntax checks and `git diff --check` passed. Five new controller regressions cover the preview-disabled path, early release while controller work is queued, forward/reverse selection, changing a manual popup to a hold session, and restricted-page/injection-failure fallback. The test suite uses an in-memory Chrome API: it verifies routing, messages, permission state, and selection behavior, but does not demonstrate native `activeTab` grants or a physical keyboard gesture in Chrome.
+
+**Remaining verification:** reload the extension and confirm version **0.1.3**, refresh the test webpages, leave screenshot previews disabled, then hold Control and tap Q on an ordinary webpage. The panel should appear in the page, and releasing Control should switch once. Repeat with multiple Q presses, reverse with Shift, and cancel with Escape. The previous browser smoke results below have not been rerun for v0.1.3. An exceptionally fast release before the first injected listener starts, or while focus remains in browser chrome, can still be missed; restricted pages keep Enter/click confirmation as a fallback.
+
+## Earlier Control-release fix (4ead91d)
 
 The fix keeps page focus until the preview iframe has installed its keyboard listeners, routes each Control release through one controller request, and buffers releases/cancellation while the popup initializes. Releases observed during startup are queued behind preceding shortcuts, so a rapid multi-step gesture activates the final selection. Existing overlays are reused, and render notifications no longer duplicate the UI's Chrome reads.
 

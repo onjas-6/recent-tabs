@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Recent Tabs",
-  "version": "0.1.2",
-  "description": "Hold Control to browse recent tabs with private, local preview cards. Release to switch.",
+  "version": "0.1.3",
+  "description": "Hold Control to browse recent tabs in page; optional previews stay private and local. Release to switch.",
   "minimum_chrome_version": "127",
   "incognito": "not_allowed",
   "permissions": [
