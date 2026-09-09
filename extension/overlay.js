@@ -62,6 +62,14 @@
   });
   window.addEventListener('message', event => {
     if (!frame || event.source !== frame.contentWindow || event.origin !== extensionOrigin) return;
+    if (event.data?.type === 'arc-recent-tabs:keyboard-ready' && event.data.sessionId === sessionId) {
+      // Keep focus in the page until the iframe can receive and report the
+      // Control release itself. A release during panel startup is then caught
+      // by the document listener above instead of disappearing in transit.
+      frame.focus({ preventScroll: true });
+      try { frame.contentWindow.focus(); } catch { /* Browser may restrict a focus request. */ }
+      return;
+    }
     if (event.data?.type === 'arc-recent-tabs:close' && event.data.sessionId === sessionId) cleanup();
   });
 
@@ -74,7 +82,6 @@
     }
     if (message.type !== 'show-overlay' || typeof message.sessionId !== 'string') return;
     if (host && sessionId === message.sessionId) {
-      frame.focus({ preventScroll: true });
       sendResponse({ ok: true, releasedAt: lastControlReleaseAt, controlHeld });
       return;
     }
@@ -89,14 +96,8 @@
     frame.src = chrome.runtime.getURL('panel.html') + '?session=' + encodeURIComponent(sessionId);
     frame.title = 'Recent tabs';
     frame.style.cssText = 'display:block;width:100%;height:100%;border:0;background:transparent;color-scheme:dark;';
-    frame.addEventListener('load', () => {
-      if (!frame) return;
-      frame.focus({ preventScroll: true });
-      try { frame.contentWindow.focus(); } catch { /* Browser may restrict a focus request. */ }
-    }, { once: true });
     shadow.append(frame);
     (document.documentElement || document.body).append(host);
-    frame.focus({ preventScroll: true });
     sendResponse({ ok: true, releasedAt: lastControlReleaseAt, controlHeld });
   });
 })();

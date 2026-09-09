@@ -27,6 +27,8 @@ To delegate installation, use the ready-to-paste instructions in [INSTALL_WITH_A
 
 ## Use
 
+The latest `main` includes a Control-release fix: the page keeps keyboard focus until the preview is ready, and releasing Control activates the final selection after any queued shortcuts. To use this fix, update from this repository, reload the extension in `chrome://extensions`, and refresh existing web pages. The published v0.1.2 ZIP predates the fix.
+
 Visit four tabs in the order **A → B → C → D**, ending on D:
 
 | Action | Result |
@@ -69,7 +71,7 @@ Install and use the extension without running any of these commands. To run the 
 npm test
 ```
 
-The current validation includes **37 passing logic tests** and **10 passing Chrome browser scenarios**. Browser-test setup and reproduction commands are in [VERIFY.md](./VERIFY.md).
+The current test suite includes regression coverage for startup focus, early Control release, queued shortcuts, and cancellation. The **37 logic tests** and **10 Chrome browser scenarios** recorded for the v0.1.2 release are historical; browser scenarios have not been rerun for this fix. See [VERIFY.md](./VERIFY.md) for current validation and reproduction commands.
 
 Source lives in [extension/](./extension/), tests in [tests/](./tests/), and the original implementation plan in [PLAN.md](./PLAN.md). After editing the extension, reload it in `chrome://extensions` and refresh the pages you are testing.
 
@@ -87,6 +89,8 @@ Source lives in [extension/](./extension/), tests in [tests/](./tests/), and the
 换电脑时复制完整文件夹，重新加载扩展、授权和检查快捷键；Chrome Sync 不会自动安装解压扩展。**加载后不要移动或删除文件夹。** 给 agent 安装时，直接使用 [INSTALL_WITH_AGENT.md](./INSTALL_WITH_AGENT.md) 中的完整指令。
 
 ### 使用与边界
+
+最新 `main` 已修复预览启动时丢失 Control 松键的问题：面板准备好才接收焦点，松开后切换到连续按键最终选中的标签。使用此修复需要更新本仓库，在 `chrome://extensions` 重新加载扩展，并刷新已有网页；已发布的 v0.1.2 ZIP 尚不包含此修复。
 
 按 A → B → C → D 的顺序访问四个标签后，在 D 按住 Control 连按 Q，会依次选中 C、B、A；加 Shift 反向，Esc 取消，Enter 或点击卡片也能确认。预览是上次浏览时保存在本机会话中的截图，不是后台实时画面；可以在设置中清空。Chrome 内置页等受限页面会使用工具栏备用弹窗。
 

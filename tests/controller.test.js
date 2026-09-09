@@ -266,6 +266,7 @@ test('overlay release observed during injection commits the first selection', as
   const requestedAt = Date.now();
   state.overlayResponse = { ok: true, releasedAt: requestedAt + 1 };
   await controller.enqueue(() => controller.begin(1, false, { id: 4 }, requestedAt));
+  await controller.tail;
   assert.equal(state.popupCalls.length, 0);
   assert.equal(controller.session, null);
   assert.equal(state.updates.at(-1).id, 3);
@@ -376,4 +377,69 @@ test('an activation event invalidates an in-flight screenshot even when original
   finish();
   await capturing;
   assert.deepEqual(controller.cache, {});
+});
+
+
+test('release during startup commits the last queued selection, not the first', async t => {
+  const { controller, state } = await setup(t, { permission: true, local: { previewsEnabled: true } });
+  const requestedAt = Date.now();
+  state.overlayResponse = { ok: true, releasedAt: requestedAt + 3 };
+  await Promise.all([1, 2, 3].map(offset => controller.enqueue(() =>
+    controller.begin(1, false, { id: 4 }, requestedAt + offset - 1))));
+  await controller.tail;
+  assert.equal(controller.session, null);
+  assert.deepEqual(state.updates, [{ id: 1, changes: { active: true } }]);
+  assert.deepEqual(controller.history[10], [1, 4, 3, 2]);
+});
+
+test('a warm overlay opens without reinjection and a missing receiver is injected once', async t => {
+  const { controller, api, state } = await setup(t, { permission: true, local: { previewsEnabled: true } });
+  await controller.begin();
+  assert.equal(controller.session.surface, 'overlay');
+  assert.equal(state.executeScripts.length, 0);
+  await controller.cancel();
+  const sendMessage = api.tabs.sendMessage;
+  let missing = true;
+  api.tabs.sendMessage = async (...args) => {
+    if (missing && args[1].type === 'show-overlay') {
+      missing = false;
+      throw new Error('Receiving end does not exist');
+    }
+    return sendMessage(...args);
+  };
+  await controller.begin();
+  assert.equal(controller.session.surface, 'overlay');
+  assert.deepEqual(state.executeScripts, [{ target: { tabId: 4 }, files: ['overlay.js'] }]);
+  assert.equal(state.popupCalls.length, 0);
+});
+
+test('stale-session, invalid-time and duplicate releases cannot switch a newer gesture', async t => {
+  const { controller, state, overlay } = await setup(t);
+  const at = Date.now();
+  await controller.begin(1, false, { id: 4 }, at);
+  const oldId = controller.session.id;
+  await controller.cancel();
+  await controller.begin(1, false, { id: 4 }, at + 1);
+  const newId = controller.session.id;
+  for (const message of [
+    { sessionId: oldId, at: at + 5 },
+    { sessionId: newId, at: Infinity },
+    { sessionId: newId, at: String(at + 5) },
+    { sessionId: newId, at: at - 1 },
+  ]) assert.equal((await controller.message({ type: 'modifier-released', ...message }, overlay)).ok, false);
+  assert.equal(controller.session.id, newId);
+  assert.deepEqual(state.updates, []);
+  await controller.message({ type: 'modifier-released', sessionId: newId, at: at + 5 }, overlay);
+  await controller.message({ type: 'modifier-released', sessionId: newId, at: at + 5 }, overlay);
+  assert.equal(controller.session, null);
+  assert.deepEqual(state.updates, [{ id: 3, changes: { active: true } }]);
+});
+
+test('keyboard render notifications do not duplicate the UI payload query', async t => {
+  const { controller, api, state } = await setup(t);
+  await controller.begin();
+  t.mock.method(api.tabs, 'query', async () => { throw new Error('UI owns payload reads'); });
+  t.mock.method(api.commands, 'getAll', async () => { throw new Error('UI owns shortcut reads'); });
+  await controller.render();
+  assert.deepEqual(state.notifications.at(-1), { type: 'render', sessionId: controller.session.id });
 });

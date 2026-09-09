@@ -98,10 +98,10 @@ export class Controller {
   }
 
   async render() {
-    const data = await this.payload();
-    // Web-accessible panel documents must fetch their data through the validated
-    // handshake. A broadcast must never contain browsing metadata or screenshots.
-    if (data.ok) ignore(this.api.runtime.sendMessage({ type: 'render', sessionId: data.session.id }));
+    // The UI fetches the payload through its validated handshake. Fetching it
+    // here as well delays queued shortcuts/releases and duplicates Chrome reads.
+    // A broadcast must never contain browsing metadata or screenshots.
+    if (this.session) ignore(this.api.runtime.sendMessage({ type: 'render', sessionId: this.session.id }));
   }
 
   async activeTab(windowId) {
@@ -133,13 +133,27 @@ export class Controller {
     if (manual) return this.payload();
     if (this.enabled && webPage(tab.url)) {
       try {
-        await this.api.scripting.executeScript({ target: { tabId: tab.id }, files: ['overlay.js'] });
         this.session.surface = 'overlay';
-        const response = await this.api.tabs.sendMessage(tab.id,
-          { type: 'show-overlay', sessionId: this.session.id }, { frameId: 0 });
+        const sessionId = this.session.id;
+        const show = () => this.api.tabs.sendMessage(tab.id,
+          { type: 'show-overlay', sessionId }, { frameId: 0 });
+        let response;
+        try { response = await show(); }
+        catch {
+          // Existing pages may predate script registration. Warm pages already
+          // listen at document_start: do not reinject before every gesture.
+          await this.api.scripting.executeScript({ target: { tabId: tab.id }, files: ['overlay.js'] });
+          response = await show();
+        }
         if (!response?.ok) throw new Error('Overlay did not open');
         await this.save();
-        if (response.releasedAt >= requestedAt && this.session) await this.commit();
+        if (Number.isFinite(response.releasedAt) && response.releasedAt >= requestedAt) {
+          // A release during startup must follow shortcuts already in the queue,
+          // otherwise a fast multi-step gesture commits its first selection.
+          ignore(this.enqueue(() => this.message({ type: 'modifier-released',
+            sessionId, at: response.releasedAt },
+          { id: this.api.runtime.id, tab: { id: tab.id }, frameId: 0 })));
+        }
         return { ok: true };
       } catch {
         if (this.session) ignore(this.api.tabs.sendMessage(tab.id,
@@ -161,10 +175,11 @@ export class Controller {
     const current = this.session;
     if (!current) return;
     this.session = null;
-    await this.save();
+    // Dismiss immediately; storage should not keep the old panel on screen.
     ignore(this.api.tabs.sendMessage(current.sourceTabId,
       { type: 'hide-overlay', sessionId: current.id }, { frameId: 0 }));
     ignore(this.api.runtime.sendMessage({ type: 'close', sessionId: current.id }));
+    await this.save();
   }
 
   async commit(tabId) {
@@ -236,10 +251,17 @@ export class Controller {
         return { ok: false, error: 'This switcher is no longer active.' };
       return this.payload();
     }
-    if (message.type === 'modifier-released' && sender.id === this.api.runtime.id &&
-        ((sender.frameId === 0 && sender.tab?.id === this.session?.sourceTabId) ||
-          (trusted && this.sameSession(message, sender))) &&
-        this.session.mode === 'hold' && message.at >= this.session.createdAt) return this.commit();
+    if (message.type === 'modifier-released') {
+      const current = this.session;
+      const sourcePage = sender.id === this.api.runtime.id && sender.frameId === 0 &&
+        sender.tab?.id === current?.sourceTabId &&
+        (!message.sessionId || message.sessionId === current?.id);
+      if (current?.mode !== 'hold' || !Number.isFinite(message.at) ||
+          message.at < current.createdAt ||
+          !(sourcePage || (trusted && this.sameSession(message, sender))))
+        return { ok: false, error: 'Selection expired.' };
+      return this.commit();
+    }
     if (!this.sameSession(message, sender)) return { ok: false, error: 'Selection expired.' };
     if (message.type === 'step') {
       this.session.selection = stepSelection(this.session.selection, message.direction < 0 ? -1 : 1);

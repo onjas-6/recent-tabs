@@ -11,9 +11,10 @@ let session = null;
 let closing = false;
 let shortcut = 'Ctrl+Q';
 let tabData = [];
-let earlyControlReleaseAt = 0;
 let sessionPort = null;
 let heartbeat = null;
+let pendingControlReleaseAt = 0;
+let pendingCancel = false;
 
 function send(message) {
   return chrome.runtime.sendMessage(message).catch(() => ({ ok: false, error: 'The extension reloaded. Close this panel and try again.' }));
@@ -150,7 +151,17 @@ function render(nextSession, tabs) {
 async function act(type, extras = {}) {
   if (closing) return;
   if (!session) {
-    if (type === 'cancel') closePanel();
+    if (type === 'cancel') {
+      if (requestedSessionId) send({ type: 'cancel', sessionId: requestedSessionId });
+      else {
+        // A popup has no session token until ui-ready returns. Keep this tiny
+        // startup window alive long enough to cancel that newly identified
+        // session instead of leaving it active behind a closed popup.
+        pendingCancel = true;
+        return;
+      }
+      closePanel();
+    }
     return;
   }
   const response = await send({ type, sessionId: session.id, ...extras });
@@ -185,6 +196,7 @@ document.body.addEventListener('click', event => {
   if (surface === 'overlay' && event.target === document.body) act('cancel');
 });
 document.addEventListener('keydown', event => {
+  if (!event.isTrusted) return;
   // Ctrl+Q belongs to chrome.commands. Handling it here would double-step.
   if (event.ctrlKey && event.key.toLowerCase() === 'q') return;
   const forward = event.key === 'ArrowRight' || event.key === 'ArrowDown' || (event.key === 'Tab' && !event.shiftKey);
@@ -197,15 +209,20 @@ document.addEventListener('keydown', event => {
   }
 });
 document.addEventListener('keyup', event => {
+  if (closing || !event.isTrusted) return;
   if (event.key === 'Control' && !event.ctrlKey) {
-    earlyControlReleaseAt = Date.now();
-    send({ type: 'modifier-released', at: earlyControlReleaseAt, sessionId: session?.id || requestedSessionId });
-    if (session?.mode === 'hold') act('commit');
+    // The controller owns the release commit. Sending a separate commit here
+    // races that command and used to submit the same selection twice.
+    const releasedAt = Date.now();
+    const releaseSessionId = session?.id || requestedSessionId;
+    if (!releaseSessionId) pendingControlReleaseAt = releasedAt;
+    else if (session?.mode !== 'manual')
+      send({ type: 'modifier-released', at: releasedAt, sessionId: releaseSessionId });
   }
 });
 window.addEventListener('blur', () => {
   // An outside click or changing apps must not unexpectedly switch tabs.
-  if (surface === 'overlay' && session && !closing) act('cancel');
+  if (!closing) act('cancel');
 });
 window.addEventListener('pagehide', () => {
   clearInterval(heartbeat);
@@ -234,12 +251,27 @@ async function refreshSession(sessionId) {
 
 async function initialize() {
   const response = await send({ type: 'ui-ready', sessionId: requestedSessionId, surface });
+  if (pendingCancel) {
+    if (response?.session?.id) await send({ type: 'cancel', sessionId: response.session.id });
+    closePanel();
+    return;
+  }
+  if (closing) return;
   if (response?.ok === false) showError(response.error);
   else {
     shortcut = response.shortcut || shortcut;
     render(response.session, response.tabs);
-    track.focus({ preventScroll: true });
-    if (earlyControlReleaseAt && session?.mode === 'hold') act('commit');
+    if (!closing && session) track.focus({ preventScroll: true });
+    if (pendingControlReleaseAt && session?.mode === 'hold')
+      send({ type: 'modifier-released', at: pendingControlReleaseAt, sessionId: session.id });
+    pendingControlReleaseAt = 0;
   }
+}
+
+// The parent document deliberately retains focus until this point. This is
+// registered before initialization so a fast Control release can be buffered
+// with the requested session ID even while ui-ready is still in flight.
+if (surface === 'overlay' && requestedSessionId) {
+  parent.postMessage({ type: 'arc-recent-tabs:keyboard-ready', sessionId: requestedSessionId }, '*');
 }
 void initialize();

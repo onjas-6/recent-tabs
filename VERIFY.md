@@ -1,5 +1,6 @@
 ---
 created: 2026-09-08T20:22-07:00
+updated: 2026-09-08T20:46-07:00
 model: gpt-6
 harness: codex-desktop
 author: ai
@@ -7,6 +8,7 @@ inputs:
   - tests/history.test.js
   - tests/controller.test.js
   - tests/previews.test.js
+  - tests/keyboard-ui.test.js
   - tests/browser-smoke.mjs
   - assets/browser-smoke-v0.1.2.json
   - Native Chrome UI validation on macOS
@@ -15,7 +17,17 @@ caveats:
   - The complete physical hold-Control, repeat-Q, release-Control gesture has not been verified by a person.
 ---
 
-# Verification — v0.1.2
+# Verification
+
+## Control-release fix on main
+
+The fix keeps page focus until the preview iframe has installed its keyboard listeners, routes each Control release through one controller request, and buffers releases/cancellation while the popup initializes. Releases observed during startup are queued behind preceding shortcuts, so a rapid multi-step gesture activates the final selection. Existing overlays are reused, and render notifications no longer duplicate the UI's Chrome reads.
+
+Validation: `npm test` / `node --test tests/*.test.js` — **48 tests passed**; `git diff --check` passed. New UI tests execute the shipped `overlay.js` and `panel.js` in a Node VM with DOM and Chrome doubles; controller tests use the existing in-memory Chrome API. The four new controller regressions fail against the previous controller from `fa7b622` and pass against the fix. These tests validate event ordering and messages, not physical Chrome keyboard dispatch.
+
+The historical browser scenarios below were **not rerun for this fix**. No personal Chrome profile was modified or reloaded. A person must still verify hold Control, tap Q repeatedly, release Control, plus Escape cancellation. Focus that remains in the address bar or browser chrome can still hide an exceptionally early key release from extension documents; use Enter or Escape if that fallback panel remains open.
+
+## Historical v0.1.2 release verification
 
 Version **0.1.2** renames the product and distribution folder to **Recent Tabs** / `recent-tabs`; switching behavior and the Control + Q shortcut are unchanged. All 37 logic tests and 10 browser scenarios were rerun successfully on **v0.1.2**. The native Chrome interaction checks below were recorded for **v0.1.1**, which changed the default shortcut from Control + E to **Control + Q**. This record distinguishes native Chrome UI checks from browser automation and untested behavior. The historical [v0.1.0 record](./VERIFY-v0.1.0.md) refers to the old E shortcut.
 
